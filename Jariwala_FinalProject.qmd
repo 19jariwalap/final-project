@@ -1,0 +1,59 @@
+---
+title: "Epi 590R Final Project"
+author: "Parth Jariwala"
+format: html
+editor: visual
+	execute:
+		echo: FALSE
+---
+
+```{r}
+#| output: false
+
+library(tidyverse)
+install.packages("here")
+install.packages("janitor")
+library(gtsummary)
+
+day1_cols <- c("time", "voc_ppm", "aqs", "temperature_c", "humidity_percent", "pressure_mbar", "pm1_ug_m3", "pm2_5_ug_m3", "pm10_ug_m3", "latitude","longitude", "bus_stop")
+
+day1 <- read_csv(here::here("data", "raw", "Day1_Copy.csv"),
+								 skip =1, col_names = day1_cols) %>% 
+		janitor::clean_names() %>% 
+mutate(stop_cat = factor(bus_stop,
+		levels = c(1, 2, 3, 4),
+    labels = c("Book Nook Stop", 
+    "Clairmont Stop", 
+    "Kroger Stop", 
+    "Steak 'N Shake Stop")))
+
+
+```
+
+
+
+```{r}
+#| label: tbl-descr
+#| tbl-cap: "Descriptive statistics"
+#| output-location: slide
+#| echo: false
+table1 <- tbl_summary(
+	day1,
+	by = stop_cat,
+	include = c(voc_ppm, pm1_ug_m3, 
+							pm2_5_ug_m3, pm10_ug_m3)) %>% 
+		add_overall(last = TRUE)
+
+table1
+
+inline_text(table1, variable = "pm2_5_ug_m3", column = "stat_0")
+
+```
+The median and IQR are `r inline_text(table1, variable = "pm2_5_ug_m3", column = "stat_0") `
+```{r}
+#| label: fig-descr
+#| 
+```
+
+
+
