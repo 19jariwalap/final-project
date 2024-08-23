@@ -3,16 +3,16 @@ title: "Epi 590R Final Project"
 author: "Parth Jariwala"
 format: html
 editor: visual
-	execute:
-		echo: FALSE
+execute: 
+  echo: false
 ---
+
+The following document displays descriptive statistics, a figure, and regression analysis of an in-class project done by the author for EH 510. Data collection was done by collecting ambient air and different particulate matter (PM1, PM2.5, and PM10) and volatile organic compound (VOCs) concentrations while visiting different bus stops in the North Druid Hills area. PM2.5 concentrations will be the main variable of focus in this analysis.
 
 ```{r}
 #| output: false
 
 library(tidyverse)
-install.packages("here")
-install.packages("janitor")
 library(gtsummary)
 
 day1_cols <- c("time", "voc_ppm", "aqs", "temperature_c", "humidity_percent", "pressure_mbar", "pm1_ug_m3", "pm2_5_ug_m3", "pm10_ug_m3", "latitude","longitude", "bus_stop")
@@ -30,30 +30,73 @@ mutate(stop_cat = factor(bus_stop,
 
 ```
 
-
-
 ```{r}
-#| label: tbl-descr
-#| tbl-cap: "Descriptive statistics"
-#| output-location: slide
+#| label: tbl-one
+#| output: FALSE
 #| echo: false
 table1 <- tbl_summary(
 	day1,
 	by = stop_cat,
 	include = c(voc_ppm, pm1_ug_m3, 
-							pm2_5_ug_m3, pm10_ug_m3)) %>% 
-		add_overall(last = TRUE)
+							pm2_5_ug_m3, pm10_ug_m3), 
+			label = list(
+      voc_ppm ~ "VOC (ppm)",
+      pm1_ug_m3 ~ "PM1 (µg/m³)",
+      pm2_5_ug_m3 ~ "PM2.5 (µg/m³)",
+      pm10_ug_m3 ~ "PM10 (µg/m³)"
+    ),
+	missing_text = "Missing"
+  ) %>%
+  add_overall(last = TRUE) %>%
+  modify_header(label ~ "**Variable**") %>%
+  bold_labels() %>%
+  modify_caption("**Table 1:** Descriptive Statistics by Bus Stop")
 
 table1
 
 inline_text(table1, variable = "pm2_5_ug_m3", column = "stat_0")
 
 ```
-The median and IQR are `r inline_text(table1, variable = "pm2_5_ug_m3", column = "stat_0") `
+
+@tbl-one displays the particulate matter and VOC concentrations at different bus stops.
+The median and IQR are `r inline_text(table1, variable = "pm2_5_ug_m3", column = "stat_0")`
+
 ```{r}
-#| label: fig-descr
-#| 
+#| label: fig-one
+#| fig-cap: Frequency of PM1 Concentrations on Day 1
+#| output: FALSE
+#| echo: false
+
+hist1 <- ggplot(day1) +
+	aes(x = pm1_ug_m3) +
+	geom_histogram
+
+ggsave(plot = hist1,
+			 filename = here::here("data", "figures", "hist1.pdf"))
+
 ```
 
+```{r}
+#| label: tbl-two
+#| output: FALSE
+#| echo: FALSE
 
+linear_model <- lm(pm2_5_ug_m3 ~ temperature_c + stop_cat, data = day1)
 
+table2 <- tbl_regression(
+	linear_model,
+	intercept = FALSE,
+	label = list(
+		temperature_c ~ "Temperature (C)",
+		stop_cat ~ "Bus Stop"
+	)) %>% 
+	 modify_header(label ~ "**Variable**") %>% 
+	bold_labels() %>% 
+	modify_caption("**Table 2:** Linear Regression Model Summary for PM2.5 Concentration")
+
+table2
+```
+
+# For Parth later!!! 
+		-implement a function
+	- Need to use inline R code (maybe print mean)
