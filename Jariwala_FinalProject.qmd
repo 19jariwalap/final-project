@@ -32,7 +32,6 @@ mutate(stop_cat = factor(bus_stop,
 
 ```{r}
 #| label: tbl-one
-#| output: FALSE
 #| echo: false
 table1 <- tbl_summary(
 	day1,
@@ -58,32 +57,39 @@ inline_text(table1, variable = "pm2_5_ug_m3", column = "stat_0")
 
 ```
 
-@tbl-one displays the particulate matter and VOC concentrations at different bus stops.
-The median and IQR are `r inline_text(table1, variable = "pm2_5_ug_m3", column = "stat_0")`
+@tbl-one displays the particulate matter and VOC concentrations at different bus stops. The median and IQR are `r inline_text(table1, variable = "pm2_5_ug_m3", column = "stat_0")`
 
 ```{r}
-#| label: fig-one
+stats <- list(n = nrow(day1), mean_pm2_5 = mean(day1$pm2_5_ug_m3, na.rm = TRUE))
+```
+
+The experiment on Day 1 took `r stats$n` minutes and the average PM 2.5 concentration was `r stats$mean_pm2_5` µg/m3
+
+```{r}
+#| label: fig-hist
 #| fig-cap: Frequency of PM1 Concentrations on Day 1
-#| output: FALSE
 #| echo: false
 
 hist1 <- ggplot(day1) +
 	aes(x = pm1_ug_m3) +
-	geom_histogram
+	geom_histogram()
 
 ggsave(plot = hist1,
 			 filename = here::here("data", "figures", "hist1.pdf"))
 
 ```
+@fig-hist displays a histogram of PM1 concentrations on Day 1
 
 ```{r}
 #| label: tbl-two
-#| output: FALSE
+#| tbl-cap: Linear Regression of PM2.5 
 #| echo: FALSE
 
 linear_model <- lm(pm2_5_ug_m3 ~ temperature_c + stop_cat, data = day1)
 
-table2 <- tbl_regression(
+
+table2_function <- function(model) {
+	tbl_regression(
 	linear_model,
 	intercept = FALSE,
 	label = list(
@@ -93,10 +99,9 @@ table2 <- tbl_regression(
 	 modify_header(label ~ "**Variable**") %>% 
 	bold_labels() %>% 
 	modify_caption("**Table 2:** Linear Regression Model Summary for PM2.5 Concentration")
+}
 
-table2
+table2_function(linear_model)
 ```
 
-# For Parth later!!! 
-		-implement a function
-	- Need to use inline R code (maybe print mean)
+@tbl-two displays the relationship between PM2.5, temperature (C), and bus stop location in a linear regression table.
