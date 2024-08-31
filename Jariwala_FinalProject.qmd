@@ -5,9 +5,10 @@ format: html
 editor: visual
 execute: 
   echo: false
+  warning: false
 ---
 
-The following document displays descriptive statistics, a figure, and regression analysis of an in-class project done by the author for EH 510. Data collection was done by collecting ambient air and different particulate matter (PM1, PM2.5, and PM10) and volatile organic compound (VOCs) concentrations while visiting different bus stops in the North Druid Hills area. PM2.5 concentrations will be the main variable of focus in this analysis.
+The following document displays descriptive statistics, a figure, and regression analysis of an older data set collected by the author for a previous course, EH 510. Data collection was done by collecting ambient air and different particulate matter (PM1, PM2.5, and PM10) and volatile organic compound (VOCs) concentrations while visiting different bus stops in the North Druid Hills area. PM2.5 concentrations will be the main variable of focus in this analysis.
 
 ```{r}
 #| output: false
@@ -26,13 +27,12 @@ mutate(stop_cat = factor(bus_stop,
     "Clairmont Stop", 
     "Kroger Stop", 
     "Steak 'N Shake Stop")))
-
-
 ```
 
 ```{r}
 #| label: tbl-one
 #| echo: false
+#| tbl-cap: Descriptive Statistics by Bus Stop
 table1 <- tbl_summary(
 	day1,
 	by = stop_cat,
@@ -48,16 +48,12 @@ table1 <- tbl_summary(
   ) %>%
   add_overall(last = TRUE) %>%
   modify_header(label ~ "**Variable**") %>%
-  bold_labels() %>%
-  modify_caption("**Table 1:** Descriptive Statistics by Bus Stop")
+  bold_labels()
 
 table1
-
-inline_text(table1, variable = "pm2_5_ug_m3", column = "stat_0")
-
 ```
 
-@tbl-one displays the particulate matter and VOC concentrations at different bus stops. The median and IQR are `r inline_text(table1, variable = "pm2_5_ug_m3", column = "stat_0")`
+@tbl-one displays the particulate matter and VOC concentrations at different bus stops. The median and IQR are `r inline_text(table1, variable = "pm2_5_ug_m3", column = "stat_0")`.
 
 ```{r}
 stats <- list(n = nrow(day1), mean_pm2_5 = mean(day1$pm2_5_ug_m3, na.rm = TRUE))
@@ -66,24 +62,32 @@ stats <- list(n = nrow(day1), mean_pm2_5 = mean(day1$pm2_5_ug_m3, na.rm = TRUE))
 The experiment on Day 1 took `r stats$n` minutes and the average PM 2.5 concentration was `r stats$mean_pm2_5` µg/m3
 
 ```{r}
-#| label: fig-hist
-#| fig-cap: Frequency of PM1 Concentrations on Day 1
 #| echo: false
-
 hist1 <- ggplot(day1) +
-	aes(x = pm1_ug_m3) +
+	aes(x = pm2_5_ug_m3) +
 	geom_histogram()
+```
 
+```{r}
+#| echo: false
+#| output: false
 ggsave(plot = hist1,
 			 filename = here::here("data", "figures", "hist1.pdf"))
-
 ```
-@fig-hist displays a histogram of PM1 concentrations on Day 1
+
+```{r}
+#| label: fig-hist
+#| fig-cap: Frequency of PM2.5 Concentrations on Day 1
+#| echo: false
+hist1
+```
+
+@fig-hist displays a histogram of PM2.5 concentrations over a one hour sampling period on Day 1
 
 ```{r}
 #| label: tbl-two
-#| tbl-cap: Linear Regression of PM2.5 
-#| echo: FALSE
+#| tbl-cap: Linear Regression Model Summary for PM2.5 Concentration
+#| echo: false
 
 linear_model <- lm(pm2_5_ug_m3 ~ temperature_c + stop_cat, data = day1)
 
@@ -97,8 +101,7 @@ table2_function <- function(model) {
 		stop_cat ~ "Bus Stop"
 	)) %>% 
 	 modify_header(label ~ "**Variable**") %>% 
-	bold_labels() %>% 
-	modify_caption("**Table 2:** Linear Regression Model Summary for PM2.5 Concentration")
+	bold_labels()
 }
 
 table2_function(linear_model)
